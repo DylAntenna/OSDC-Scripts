@@ -1,0 +1,39 @@
+import os
+import subprocess
+from openpyxl import load_workbook
+
+def convert_excel_to_pdf(input_file, output_file, sheet_numbers):
+    # Convert the Excel sheets to PDF using SBCCmd
+    sheet_numbers_str = ",".join(map(str, sheet_numbers))
+    command = f'SBCCmd -d "{input_file}" -o "{output_file}" -xlssheetorderselect "{sheet_numbers_str}"'
+    subprocess.run(command, shell=True)
+
+def find_sheets_with_negative_values(file_path):
+    wb = load_workbook(file_path)
+    sheet_numbers_to_convert = []
+
+    for sheet_number, sheet in enumerate(wb.worksheets, start=1):
+        cell_value = sheet['A1'].value
+
+        if isinstance(cell_value, (int, float)) and cell_value < 0:
+            sheet_numbers_to_convert.append(sheet_number)
+
+    return sheet_numbers_to_convert
+
+def main():
+    script_dir = os.path.dirname(os.path.abspath(__file__))  # Get the directory of the script
+    for file in os.listdir(script_dir):
+        if file.endswith(".xlsx"):
+            input_file = os.path.join(script_dir, file)
+
+            sheet_numbers = find_sheets_with_negative_values(input_file)
+
+            if sheet_numbers:
+                output_file = os.path.splitext(file)[0] + "_neg.pdf"
+                convert_excel_to_pdf(input_file, output_file, sheet_numbers)
+                print(f"Converted {file} to {output_file}")
+            else:
+                print(f"No sheets with negative values found in {file}")
+
+if __name__ == "__main__":
+    main()
