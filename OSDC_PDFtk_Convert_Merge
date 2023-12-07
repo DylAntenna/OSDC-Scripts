@@ -1,0 +1,27 @@
+@echo off
+
+REM Get the folder path of the batch file
+set "folder=%~dp0"
+
+REM Execute the PDF command on all .docx and .xlsx files within the folder
+for %%f in ("%folder%\*.docx" "%folder%\*.xlsx") do (
+    SBCCmd -d "%%f" -o "%%~nf.pdf"
+)
+
+REM Merge all generated PDFs using pdftk
+set "output_filename=Merged"
+
+REM Merge PDFs directly without a list file
+pdftk "%folder%\*.pdf" cat output "%folder%\%output_filename%.pdf"
+
+echo "PDF merge completed!"
+
+REM Clean up intermediate PDF files
+for %%F in ("%folder%\*.pdf") do (
+    if not "%%~nF"=="%output_filename%" (
+        del "%%F"
+    )
+)
+
+echo "Intermediate PDF files cleaned up."
+pause
